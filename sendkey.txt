@@ -1,0 +1,124 @@
+'Alternate SendKeys
+'http://blogwizhook.blog.fc2.com/blog-entry-56.html
+
+Private Type KEYBDINPUT
+    intVk           As Integer
+    intScan         As Integer
+    lngFlags        As Long
+    lngTime         As Long
+    lngExtraInfo    As Long
+    byteDummy(1 To 8) As Byte
+End Type
+
+Private Type INPUT_TYPE
+    lngType         As Long
+    kbd             As KEYBDINPUT
+End Type
+
+Private Declare Function SendInput Lib "user32.dll" _
+        (ByVal nInputs As Long, _
+               pInputs As INPUT_TYPE, _
+         ByVal cbsize As Long) As Long
+
+Private Const INPUT_KEYBOARD        As Integer = 1
+Private Const KEYEVENTF_KEYDOWN     As Integer = 0
+Private Const KEYEVENTF_EXTENDEDKEY As Integer = 1
+Private Const KEYEVENTF_KEYUP       As Integer = 2
+
+'=== 代替SendKeys ===
+'
+Public Sub SendKeysX(ByVal SKkey As Integer, _
+                Optional SKShift As Boolean = False, _
+                Optional SKCtrl As Boolean = False, _
+                Optional SKAlt As Boolean = False, _
+                Optional SKWin As Boolean = False)
+'--- SKkey      キーコード
+'--- SKShift    Shiftキー有効
+'--- SKCtrl     Controlキー有効
+'--- SKAlt      Alternateキー有効
+'--- SKWin      Windowsキー有効
+
+Dim KBDIN() As INPUT_TYPE
+Dim SameTime As Long
+Dim i As Integer
+
+SameTime = Abs(SKShift + SKCtrl + SKAlt + SKWin)
+
+ReDim KBDIN(0 To SameTime * 2 + 1)
+
+i = 0
+
+'-- キーを押す
+If SKShift Then
+    KBDIN(i).kbd.intVk = vbKeyShift
+    GoSub Set_KEYDOWN
+End If
+If SKCtrl Then
+    KBDIN(i).kbd.intVk = vbKeyControl
+    GoSub Set_KEYDOWN
+End If
+If SKAlt Then
+    KBDIN(i).kbd.intVk = vbKeyMenu
+    GoSub Set_KEYDOWN
+End If
+If SKWin Then
+    KBDIN(i).kbd.intVk = &H5B '<- VK_LWIN
+    GoSub Set_KEYDOWN
+End If
+
+    KBDIN(i).kbd.intVk = SKkey
+    GoSub Set_KEYDOWN
+
+'--- キーを離す
+If SKShift Then
+    KBDIN(i).kbd.intVk = vbKeyShift
+    GoSub Set_KEYUP
+End If
+If SKCtrl Then
+    KBDIN(i).kbd.intVk = vbKeyControl
+    GoSub Set_KEYUP
+End If
+If SKAlt Then
+    KBDIN(i).kbd.intVk = vbKeyMenu
+    GoSub Set_KEYUP
+End If
+If SKWin Then
+    KBDIN(i).kbd.intVk = &H5B '<- VK_LWIN
+    GoSub Set_KEYUP
+End If
+
+    KBDIN(i).kbd.intVk = SKkey
+    GoSub Set_KEYUP
+
+'--- SendInput実行
+SendInput SameTime * 2 + 2, KBDIN(0), Len(KBDIN(0))
+
+Exit Sub
+
+'=== 以下 サブルーチン ===
+
+'--- キーを押す
+Set_KEYDOWN:
+    With KBDIN(i)
+        .lngType = INPUT_KEYBOARD
+        .kbd.intScan = 0
+        .kbd.lngFlags = KEYEVENTF_KEYDOWN Or KEYEVENTF_EXTENDEDKEY
+        .kbd.lngTime = 0
+        .kbd.lngExtraInfo = 0
+    End With
+    i = i + 1
+Return
+
+'--- キーを離す
+Set_KEYUP:
+    With KBDIN(i)
+        .lngType = INPUT_KEYBOARD
+        .kbd.intScan = 0
+        .kbd.lngFlags = KEYEVENTF_KEYUP Or KEYEVENTF_EXTENDEDKEY
+        .kbd.lngTime = 0
+        .kbd.lngExtraInfo = 0
+    End With
+    i = i + 1
+Return
+
+End Sub
