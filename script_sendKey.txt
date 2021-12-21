@@ -1,0 +1,37 @@
+
+'Sleep
+Public Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+
+Sub 正方形長方形1_Click()
+    
+    
+    
+ 'Google Chromeを起動し指定URLに移動
+ 'CreateObject("WScript.Shell").Run ("chrome.exe -url " & "https://amazon.co.jp")
+
+    CreateObject("WScript.Shell").Run ("chrome.exe -url " & "https://google.co.jp")
+
+    Sleep 5000
+    
+    SendKeys ("TEL")
+    'Sleep 100
+    'SendKeys ("VK_RETURN")
+    SendKeys ("{ENTER}")
+    
+    Sleep 5000
+    SendKeys ("{TAB}")
+    SendKeys ("{TAB}")
+    SendKeys ("{TAB}")
+    
+    SendKeys ("{ENTER}")
+    SendKeys ("{ENTER}")
+    
+    SendKeys ("abc")
+    
+    
+End Sub
+
+Public Function SendKeys(InpKeys As String)
+    Sleep 5000
+    CreateObject("WScript.Shell").SendKeys InpKeys
+End Function
